@@ -118,16 +118,35 @@ public class ClientConsole implements ChatIF
   public static void main(String[] args) 
   {
     String host = "";
+    int port = 0;
 
 
     try
     {
       host = args[0];
+      port = Integer.parseInt(args[1]);
     }
     catch(ArrayIndexOutOfBoundsException e)
     {
       host = "localhost";
+      port = DEFAULT_PORT;
     }
+    // Asking the client to enter a valid port number on console
+    // connects the client to the port number if its a valid number/input
+    // otherwise connecting them to the default port
+    try
+    {
+    	System.out.println("Enter a port number: ");
+    	BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+    	port = Integer.parseInt(bufferedReader.readLine());
+    	System.out.println("Connected to port: " + port);
+    }
+    catch (Exception e)
+    {
+    	port = DEFAULT_PORT;
+    	System.out.println("Must enter a valid port number. Connected to the Default port: " + DEFAULT_PORT);
+    }
+    
     ClientConsole chat= new ClientConsole(host, DEFAULT_PORT);
     chat.accept();  //Wait for console data
   }
