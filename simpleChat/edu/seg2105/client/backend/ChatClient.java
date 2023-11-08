@@ -125,7 +125,7 @@ public class ChatClient extends AbstractClient
 			break;
 		// Display host name
 		case "#gethost":
-			System.out.println("The Host number is: " + getHost());
+			clientUI.display("The Host number is: " + getHost());
 			break;
 		// Display port number
 		case "#getport":
