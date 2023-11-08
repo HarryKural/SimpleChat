@@ -141,7 +141,7 @@ public class ClientConsole implements ChatIF
     	port = Integer.parseInt(bufferedReader.readLine());
     	System.out.println("Connected to port: " + port);
     }
-    catch (Exception e)
+    catch(Exception e)
     {
     	port = DEFAULT_PORT;
     	System.out.println("Must enter a valid port number. Connected to the Default port: " + DEFAULT_PORT);

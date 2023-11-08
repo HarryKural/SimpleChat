@@ -58,8 +58,6 @@ public class ChatClient extends AbstractClient
   public void handleMessageFromServer(Object msg) 
   {
     clientUI.display(msg.toString());
-    
-    
   }
 
   /**
@@ -69,16 +67,86 @@ public class ChatClient extends AbstractClient
    */
   public void handleMessageFromClientUI(String message)
   {
-    try
-    {
-      sendToServer(message);
-    }
-    catch(IOException e)
-    {
-      clientUI.display
-        ("Could not send message to server.  Terminating client.");
-      quit();
-    }
+	  // Check if the first character of the input is '#'
+	  if (message.charAt(0) == '#') {
+		  String command = message;
+		  // Storing the strings/input from user,
+		  // individually into array if they are separated with spaces
+		  String[] split = message.split(" ");
+		  
+		switch (split[0]) {
+		// Call quit() if the first element of the split array is #quit
+		case "#quit":
+			quit();
+			break;
+		// Call closeConnection() if the first element of the split array is #logoff
+		case "#logoff":
+			try {
+				closeConnection();
+			} catch (IOException e) {
+				clientUI.display("Error logging out");
+			}
+			break;
+		// Checks if user is connected, if not then calls
+		// setHost() if the first element of the split array is #sethost
+		case "#sethost":
+			if (this.isConnected()) {
+				clientUI.display("You are already connected!");
+			}
+			else {
+				this.setHost(split[1]);
+				clientUI.display("The host name has updated!");
+			}
+			break;
+		// Checks if user is connected, if not then calls
+		// setPort() if the first element of the split array is #setPort
+		case "#setport":
+			if (this.isConnected()) {
+				clientUI.display("You are already connected!");
+			}
+			else {
+				this.setPort(Integer.parseInt(split[1]));
+				clientUI.display("The port number has updated!");
+			}
+			break;
+		// Calls openConnections() if client is not already connected otherwise print message
+		case "#login":
+			if (!this.isConnected()) {
+				try {
+					openConnection();
+					clientUI.display("You are logged in!");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			else {
+				clientUI.display("You are already connected!");
+			}
+			break;
+		// Display host name
+		case "#gethost":
+			System.out.println("The Host number is: " + getHost());
+			break;
+		// Display port number
+		case "#getport":
+			clientUI.display("The Port number is: " + getPort());
+			break;
+		default:
+			clientUI.display("Invalid command: " + command);
+			break;
+		}
+	  }
+	  // If user enters anything without the '#' symbol / not a command
+	  else {
+		  try {
+			  sendToServer(message);
+		  }
+		  catch (IOException e) {
+			  clientUI.display
+			  ("Could not send message to server.  Terminating client.");
+			  quit();
+		  }
+	  }
   }
   
   /**
