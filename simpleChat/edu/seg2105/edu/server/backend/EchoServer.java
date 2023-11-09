@@ -4,6 +4,7 @@ package edu.seg2105.edu.server.backend;
 // license found at www.lloseng.com 
 
 
+import edu.seg2105.client.common.ChatIF;
 import ocsf.server.*;
 
 /**
@@ -17,6 +18,18 @@ import ocsf.server.*;
  */
 public class EchoServer extends AbstractServer 
 { 
+	
+   // Instance variables **********************************************
+	
+  /**
+   * The interface type variable.  It allows the implementation of 
+   * the display method in the client.
+   */
+  ChatIF serverUI;
+
+  // login key used for storing client's login id
+  private static final String LOGIN_KEY = "loginID";
+
   //Constructors ****************************************************
   
   /**
@@ -24,9 +37,10 @@ public class EchoServer extends AbstractServer
    *
    * @param port The port number to connect on.
    */
-  public EchoServer(int port) 
+  public EchoServer(int port, ChatIF serverUI) 
   {
     super(port);
+    this.serverUI = serverUI;
   }
 
   
@@ -51,8 +65,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStarted()
   {
-    System.out.println
-      ("Server listening for connections on port " + getPort());
+	  serverUI.display("Server listening for connections on port " + getPort());
   }
   
   /**
@@ -61,8 +74,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStopped()
   {
-    System.out.println
-      ("Server has stopped listening for connections.");
+	  serverUI.display("Server has stopped listening for connections.");
   }
   
   
@@ -74,7 +86,7 @@ public class EchoServer extends AbstractServer
    */
   @Override
   protected void clientConnected(ConnectionToClient client) {
-	  System.out.println("Client has connected to the Server");
+	  serverUI.display("Client has connected to the Server");
   }
   
   /**
@@ -83,7 +95,7 @@ public class EchoServer extends AbstractServer
    */
   @Override
   protected void clientDisconnected(ConnectionToClient client) {
-	  System.out.println("Client has disconnected from the Server");
+	  serverUI.display("Client has disconnected from the Server");
   }
 }
 //End of EchoServer class
