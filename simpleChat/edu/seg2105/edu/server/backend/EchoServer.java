@@ -4,6 +4,8 @@ package edu.seg2105.edu.server.backend;
 // license found at www.lloseng.com 
 
 
+import java.io.IOException;
+
 import edu.seg2105.client.common.ChatIF;
 import ocsf.server.*;
 
@@ -26,6 +28,8 @@ public class EchoServer extends AbstractServer
    * the display method in the client.
    */
   ChatIF serverUI;
+  
+  EchoServer server;
 
   // login key used for storing client's login id
   private static final String LOGIN_KEY = "loginID";
@@ -54,10 +58,235 @@ public class EchoServer extends AbstractServer
    */
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
-  {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+  {  
+	  String message = (String) msg;
+	  // Print client's message on server console
+	  serverUI.display("Message received: " + msg + " from " + client);
+	  
+	// If msg received from client is "#login"
+	  if (message.startsWith("#login")) {
+		  // 
+		  if (client.getInfo(LOGIN_KEY) == null) {
+			  client.setInfo(LOGIN_KEY, message.replaceAll("#login ", ""));
+			  // print server message indicating success in logging in client
+			  serverUI.display(client.getInfo(LOGIN_KEY) + " has logged on.");
+			  // print client message indication success in login
+			  this.sendToAllClients(client.getInfo(LOGIN_KEY) + " has logged on.");
+		  }
+		  else {
+			  // if client already logged in then close connection
+			  try {
+				  serverUI.display("ERROR - already logged in. Connection closing");
+				  client.close();
+			  }
+			  catch (IOException e) {
+				  serverUI.display("Unable to close connection");
+			  }
+		  }
+	  }
+	  // else if message received from the client is not a command
+	  else {
+		  this.sendToAllClients(client.getInfo(LOGIN_KEY) + ": " + message);
+	  }
   }
+  
+	/**
+	 * This method handles any messages received from the server UI.
+	 *
+	 * @param msg The message received from the server
+	 */
+	public void handleMessageFromServerUI(String message) {
+
+		if (message.startsWith("#")) {
+			handleCommandFromServerUI(message);
+			
+		}
+		// Echoing data typed by end-user on server's console to server's console & all clients
+		else {
+			String msg = "SERVER MSG> " + message;
+			serverUI.display(msg);
+			this.sendToAllClients(msg);
+
+		}
+	}
+
+  /**
+   * Method to handle commands input by user on the Server UI console
+   * @param serverCommand command for server to handle
+   * @throws IOException throws IOException for invalid command or other errors
+   */
+  private void handleCommandFromServerUI(String message) {
+	  if (message.charAt(0) == '#') {
+			String command = message;
+			  // Storing the strings/input from user,
+			  // individually into array if they are separated with spaces
+			  String[] split = message.split(" ");
+			  
+			  switch (split[0]) {
+			// Close the server
+			case "#quit":
+				serverUI.display("Shutting down server");
+				System.exit(0);
+				break;
+			// Server will stop listening for connections from new clients
+			case "#stop":
+				if (server.isListening()) {
+					server.stopListening();
+					serverUI.display("Server has stopped listening for new connections");
+				}
+				else {
+					serverUI.display("Server has stopped listening");
+				}
+				break;
+			// Stop listening for new connections then disconnect all the clients
+			case "#close":
+				if (server.isListening()) {
+					server.stopListening();
+					serverUI.display("Server has stopped listening for connections." +
+					System.lineSeparator() + "Disconnecting all clients...");
+					
+					try {
+						server.close();
+						serverUI.display("Server has stopped");
+					}
+					catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				}
+				break;
+			// Calls setPort() from user input; only allowed if server is currently not connected
+			case "#setport":
+				if (server.isListening()) {
+					serverUI.display("Server already has an open connection");
+				}
+				else {
+					server.setPort(Integer.parseInt(split[1]));
+					serverUI.display("The port number has updated: " + split[1]);
+				}
+				break;
+			// Start listening for new connections, allowed if server is currently stopped
+			case "#start":
+				if (server.isListening()) {
+					serverUI.display("Server already running... listening for connections");
+				}
+				else {
+					try {
+						server.listen();
+						}
+					catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				}
+				break;
+			// Display port number
+			case "#getport":
+				if (server.isListening()) {
+					serverUI.display("The Port number is: " + server.getPort());
+				}
+				else {
+					serverUI.display("Server currently not listening");
+				}
+				break;
+			default:
+				serverUI.display("Invalid command: " + command);
+				break;
+			}
+			
+		}
+	  	// else if no command recognized 
+		else
+		{
+			serverUI.display("Error - Invalid command");
+		}
+	  
+  }
+	  
+//	public void display(String message) {
+//		if (message.charAt(0) == '#') {
+//			String command = message;
+//			  // Storing the strings/input from user,
+//			  // individually into array if they are separated with spaces
+//			  String[] split = message.split(" ");
+//			  
+//			  switch (split[0]) {
+//			// Close the server
+//			case "#quit":
+//				System.out.println("Shutting down server");
+//				System.exit(0);
+//				break;
+//			// Server will stop listening for connections from new clients
+//			case "#stop":
+//				if (server.isListening()) {
+//					server.stopListening();
+//					System.out.println("Server has stopped listening for new connections");
+//				}
+//				else {
+//					System.out.println("Server has stopped listening");
+//				}
+//				break;
+//			// Stop listening for new connections then disconnect all the clients
+//			case "#close":
+//				if (server.isListening()) {
+//					server.stopListening();
+//					System.out.println("Server has stopped listening for connections." +
+//					System.lineSeparator() + "Disconnecting all clients...");
+//					
+//					try {
+//						server.close();
+//						System.out.println("Server has stopped");
+//					}
+//					catch (IOException ex) {
+//						ex.printStackTrace();
+//					}
+//				}
+//				break;
+//			// Calls setPort() from user input; only allowed if server is currently not connected
+//			case "#setport":
+//				if (server.isListening()) {
+//					System.out.println("Server already has an open connection");
+//				}
+//				else {
+//					server.setPort(Integer.parseInt(split[1]));
+//					System.out.println("The port number has updated: " + split[1]);
+//				}
+//				break;
+//			// Start listening for new connections, allowed if server is currently stopped
+//			case "#start":
+//				if (server.isListening()) {
+//					System.out.println("Server already running... listening for connections");
+//				}
+//				else {
+//					try {
+//						server.listen();
+//						}
+//					catch (IOException ex) {
+//						ex.printStackTrace();
+//					}
+//				}
+//				break;
+//			// Display port number
+//			case "#getport":
+//				if (server.isListening()) {
+//					System.out.println("The Port number is: " + server.getPort());
+//				}
+//				else {
+//					System.out.println("Server currently not listening");
+//				}
+//				break;
+//			default:
+//				System.out.println("Invalid command: " + command);
+//				break;
+//			}
+//			
+//		}
+//		// Echoing data types by end-user on server's console to server's console & all clients
+//		else
+//		{
+//			String msg = "SERVER MSG> " + message;
+//			server.sendToAllClients(msg);
+//			System.out.println(msg);
+//		}
+//	}
     
   /**
    * This method overrides the one in the superclass.  Called
@@ -94,8 +323,9 @@ public class EchoServer extends AbstractServer
    *  when a client is disconnected from the server
    */
   @Override
-  protected void clientDisconnected(ConnectionToClient client) {
-	  serverUI.display("Client has disconnected from the Server");
+  synchronized protected void clientDisconnected(ConnectionToClient client) {
+	  serverUI.display("Connection disconnected with client: " + client.getInfo(LOGIN_KEY));
   }
+
 }
 //End of EchoServer class
