@@ -27,6 +27,11 @@ public class ChatClient extends AbstractClient
    * the display method in the client.
    */
   ChatIF clientUI; 
+  
+  /**
+   * Client id
+   */
+  String loginId;
 
   
   //Constructors ****************************************************
@@ -39,10 +44,11 @@ public class ChatClient extends AbstractClient
    * @param clientUI The interface type variable.
    */
   
-  public ChatClient(String host, int port, ChatIF clientUI) 
+  public ChatClient(String loginId,String host, int port, ChatIF clientUI) 
     throws IOException 
   {
     super(host, port); //Call the superclass constructor
+    this.loginId = loginId.replaceAll("#login", "");
     this.clientUI = clientUI;
     openConnection();
   }
@@ -111,16 +117,16 @@ public class ChatClient extends AbstractClient
 			break;
 		// Calls openConnections() if client is not already connected otherwise print message
 		case "#login":
-			if (!this.isConnected()) {
+			if (this.isConnected()) {
+				clientUI.display("Client is already connected to host " + getHost() + " on port " + getPort());
+			}
+			else {
 				try {
 					openConnection();
 					clientUI.display("You are logged in!");
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-			}
-			else {
-				clientUI.display("You are already connected!");
 			}
 			break;
 		// Display host name
@@ -183,6 +189,23 @@ public class ChatClient extends AbstractClient
   @Override
   protected void connectionClosed() {
 	  clientUI.display("Connection closed");
+  }
+  
+  /**
+   * Implements the hook method called after a connection has been established. The default
+   * implementation does nothing. It may be overridden by subclasses to do
+   * anything they wish.
+   */
+  @Override
+  protected void connectionEstablished() {
+	// Send server command to set loginId
+	  try {
+		  sendToServer("#login" + this.loginId);
+	  }
+	  catch (IOException e) {
+		  clientUI.display("Unable to send login command to server");
+		  System.exit(1);
+	  }
   }
 }
 //End of ChatClient class

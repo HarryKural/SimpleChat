@@ -50,13 +50,11 @@ public class ClientConsole implements ChatIF
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String host, int port) 
+  public ClientConsole(String loginId, String host, int port) 
   {
     try 
     {
-      client= new ChatClient(host, port, this);
-      
-      
+      client= new ChatClient(loginId, host, port, this);
     } 
     catch(IOException exception) 
     {
@@ -117,37 +115,50 @@ public class ClientConsole implements ChatIF
    */
   public static void main(String[] args) 
   {
+	String loginId = "";
     String host = "";
-    int port = 0;
+    int port = DEFAULT_PORT;
 
+    if(args.length == 0 || !args[0].startsWith("#login")) {
+		System.out.println("ERROR - No login ID provided. Connection terminated");
+		System.exit(1);
+	}
 
     try
     {
-      host = args[0];
-      port = Integer.parseInt(args[1]);
+      loginId = args[0]+" "+args[1];
+      host = args[2];
+      port = Integer.parseInt(args[3]);
     }
     catch(ArrayIndexOutOfBoundsException e)
     {
       host = "localhost";
       port = DEFAULT_PORT;
     }
+    catch (NumberFormatException e) {
+		port = DEFAULT_PORT; 
+	
+	} catch (Exception e) {
+		System.out.println("ERROR - Client could not parse arguments from console, terminating client");
+		System.exit(1);
+	}
     // Asking the client to enter a valid port number on console
     // connects the client to the port number if its a valid number/input
     // otherwise connecting them to the default port
-    try
-    {
-    	System.out.println("Enter a port number: ");
-    	BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-    	port = Integer.parseInt(bufferedReader.readLine());
-    	System.out.println("Connected to port: " + port);
-    }
-    catch(Exception e)
-    {
-    	port = DEFAULT_PORT;
-    	System.out.println("Must enter a valid port number. Connected to the Default port: " + DEFAULT_PORT);
-    }
+//    try
+//    {
+//    	System.out.println("Enter a port number: ");
+//    	BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+//    	port = Integer.parseInt(bufferedReader.readLine());
+//    	System.out.println("Connected to port: " + port);
+//    }
+//    catch(Exception e)
+//    {
+//    	port = DEFAULT_PORT;
+//    	System.out.println("Must enter a valid port number. Connected to the Default port: " + DEFAULT_PORT);
+//    }
     
-    ClientConsole chat= new ClientConsole(host, DEFAULT_PORT);
+    ClientConsole chat = new ClientConsole(loginId, host, port);
     chat.accept();  //Wait for console data
   }
 }
