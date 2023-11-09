@@ -28,8 +28,6 @@ public class EchoServer extends AbstractServer
    * the display method in the client.
    */
   ChatIF serverUI;
-  
-  EchoServer server;
 
   // login key used for storing client's login id
   private static final String LOGIN_KEY = "loginID";
@@ -68,6 +66,7 @@ public class EchoServer extends AbstractServer
 		  // 
 		  if (client.getInfo(LOGIN_KEY) == null) {
 			  client.setInfo(LOGIN_KEY, message.replaceAll("#login ", ""));
+			  serverUI.display("Message received: #login <loginID> from null.");
 			  // print server message indicating success in logging in client
 			  serverUI.display(client.getInfo(LOGIN_KEY) + " has logged on.");
 			  // print client message indication success in login
@@ -103,9 +102,8 @@ public class EchoServer extends AbstractServer
 		}
 		// Echoing data typed by end-user on server's console to server's console & all clients
 		else {
-			String msg = "SERVER MSG> " + message;
-			serverUI.display(msg);
-			this.sendToAllClients(msg);
+			serverUI.display(message);
+			this.sendToAllClients("SERVER MSG> " + message);
 
 		}
 	}
@@ -130,8 +128,8 @@ public class EchoServer extends AbstractServer
 				break;
 			// Server will stop listening for connections from new clients
 			case "#stop":
-				if (server.isListening()) {
-					server.stopListening();
+				if (isListening()) {
+					stopListening();
 					serverUI.display("Server has stopped listening for new connections");
 				}
 				else {
@@ -140,13 +138,13 @@ public class EchoServer extends AbstractServer
 				break;
 			// Stop listening for new connections then disconnect all the clients
 			case "#close":
-				if (server.isListening()) {
-					server.stopListening();
+				if (isListening()) {
+					stopListening();
 					serverUI.display("Server has stopped listening for connections." +
 					System.lineSeparator() + "Disconnecting all clients...");
 					
 					try {
-						server.close();
+						close();
 						serverUI.display("Server has stopped");
 					}
 					catch (IOException ex) {
@@ -156,22 +154,22 @@ public class EchoServer extends AbstractServer
 				break;
 			// Calls setPort() from user input; only allowed if server is currently not connected
 			case "#setport":
-				if (server.isListening()) {
+				if (isListening()) {
 					serverUI.display("Server already has an open connection");
 				}
 				else {
-					server.setPort(Integer.parseInt(split[1]));
+					setPort(Integer.parseInt(split[1]));
 					serverUI.display("The port number has updated: " + split[1]);
 				}
 				break;
 			// Start listening for new connections, allowed if server is currently stopped
 			case "#start":
-				if (server.isListening()) {
+				if (isListening()) {
 					serverUI.display("Server already running... listening for connections");
 				}
 				else {
 					try {
-						server.listen();
+						listen();
 						}
 					catch (IOException ex) {
 						ex.printStackTrace();
@@ -180,8 +178,8 @@ public class EchoServer extends AbstractServer
 				break;
 			// Display port number
 			case "#getport":
-				if (server.isListening()) {
-					serverUI.display("The Port number is: " + server.getPort());
+				if (isListening()) {
+					serverUI.display("The Port number is: " + getPort());
 				}
 				else {
 					serverUI.display("Server currently not listening");
@@ -200,93 +198,6 @@ public class EchoServer extends AbstractServer
 		}
 	  
   }
-	  
-//	public void display(String message) {
-//		if (message.charAt(0) == '#') {
-//			String command = message;
-//			  // Storing the strings/input from user,
-//			  // individually into array if they are separated with spaces
-//			  String[] split = message.split(" ");
-//			  
-//			  switch (split[0]) {
-//			// Close the server
-//			case "#quit":
-//				System.out.println("Shutting down server");
-//				System.exit(0);
-//				break;
-//			// Server will stop listening for connections from new clients
-//			case "#stop":
-//				if (server.isListening()) {
-//					server.stopListening();
-//					System.out.println("Server has stopped listening for new connections");
-//				}
-//				else {
-//					System.out.println("Server has stopped listening");
-//				}
-//				break;
-//			// Stop listening for new connections then disconnect all the clients
-//			case "#close":
-//				if (server.isListening()) {
-//					server.stopListening();
-//					System.out.println("Server has stopped listening for connections." +
-//					System.lineSeparator() + "Disconnecting all clients...");
-//					
-//					try {
-//						server.close();
-//						System.out.println("Server has stopped");
-//					}
-//					catch (IOException ex) {
-//						ex.printStackTrace();
-//					}
-//				}
-//				break;
-//			// Calls setPort() from user input; only allowed if server is currently not connected
-//			case "#setport":
-//				if (server.isListening()) {
-//					System.out.println("Server already has an open connection");
-//				}
-//				else {
-//					server.setPort(Integer.parseInt(split[1]));
-//					System.out.println("The port number has updated: " + split[1]);
-//				}
-//				break;
-//			// Start listening for new connections, allowed if server is currently stopped
-//			case "#start":
-//				if (server.isListening()) {
-//					System.out.println("Server already running... listening for connections");
-//				}
-//				else {
-//					try {
-//						server.listen();
-//						}
-//					catch (IOException ex) {
-//						ex.printStackTrace();
-//					}
-//				}
-//				break;
-//			// Display port number
-//			case "#getport":
-//				if (server.isListening()) {
-//					System.out.println("The Port number is: " + server.getPort());
-//				}
-//				else {
-//					System.out.println("Server currently not listening");
-//				}
-//				break;
-//			default:
-//				System.out.println("Invalid command: " + command);
-//				break;
-//			}
-//			
-//		}
-//		// Echoing data types by end-user on server's console to server's console & all clients
-//		else
-//		{
-//			String msg = "SERVER MSG> " + message;
-//			server.sendToAllClients(msg);
-//			System.out.println(msg);
-//		}
-//	}
     
   /**
    * This method overrides the one in the superclass.  Called

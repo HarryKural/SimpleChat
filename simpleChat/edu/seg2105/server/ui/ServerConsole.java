@@ -50,90 +50,7 @@ public class ServerConsole implements ChatIF {
      */
 	@Override
 	public void display(String message) {
-		if (message.charAt(0) == '#') {
-			String command = message;
-			  // Storing the strings/input from user,
-			  // individually into array if they are separated with spaces
-			  String[] split = message.split(" ");
-			  
-			  switch (split[0]) {
-			// Close the server
-			case "#quit":
-				System.out.println("Shutting down server");
-				System.exit(0);
-				break;
-			// Server will stop listening for connections from new clients
-			case "#stop":
-				if (server.isListening()) {
-					server.stopListening();
-					System.out.println("Server has stopped listening for new connections");
-				}
-				else {
-					System.out.println("Server has stopped listening");
-				}
-				break;
-			// Stop listening for new connections then disconnect all the clients
-			case "#close":
-				if (server.isListening()) {
-					server.stopListening();
-					System.out.println("Server has stopped listening for connections." +
-					System.lineSeparator() + "Disconnecting all clients...");
-					
-					try {
-						server.close();
-						System.out.println("Server has stopped");
-					}
-					catch (IOException ex) {
-						ex.printStackTrace();
-					}
-				}
-				break;
-			// Calls setPort() from user input; only allowed if server is currently not connected
-			case "#setport":
-				if (server.isListening()) {
-					System.out.println("Server already has an open connection");
-				}
-				else {
-					server.setPort(Integer.parseInt(split[1]));
-					System.out.println("The port number has updated: " + split[1]);
-				}
-				break;
-			// Start listening for new connections, allowed if server is currently stopped
-			case "#start":
-				if (server.isListening()) {
-					System.out.println("Server already running... listening for connections");
-				}
-				else {
-					try {
-						server.listen();
-						}
-					catch (IOException ex) {
-						ex.printStackTrace();
-					}
-				}
-				break;
-			// Display port number
-			case "#getport":
-				if (server.isListening()) {
-					System.out.println("The Port number is: " + server.getPort());
-				}
-				else {
-					System.out.println("Server currently not listening");
-				}
-				break;
-			default:
-				System.out.println("Invalid command: " + command);
-				break;
-			}
-			
-		}
-		// Echoing data types by end-user on server's console to server's console & all clients
-		else
-		{
-			String msg = "SERVER MSG> " + message;
-			server.sendToAllClients(msg);
-			System.out.println(msg);
-		}
+		System.out.println("SERVER MSG> " + message);
 	}
 	
 	//Instance methods ************************************************
@@ -152,13 +69,13 @@ public class ServerConsole implements ChatIF {
 	      while (true) 
 	      {
 	        message = fromConsole.nextLine();
-	        display(message);
+	        server.handleMessageFromServerUI(message);
 	      }
 	    } 
 	    catch (Exception ex) 
 	    {
 	      System.out.println
-	        ("Unexpected error while reading from console!");
+	        ("Unexpected error while reading from console!" + ex.getMessage());
 	    }
 	}
 	
